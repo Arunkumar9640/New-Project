@@ -38,6 +38,7 @@ const App = () => {
   }
 
   const handleSubmit = (e) => {
+    
     e.preventDefault();
     getData(`${URL}${search}`);
     setSearch('');
