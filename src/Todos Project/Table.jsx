@@ -6,11 +6,12 @@ const Table = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isEditing, setIsEditing] = useState(null);
+  const [errors, setErrors] = useState({ username: false, email: false });
 
   useEffect(() => {
     try {
       axios.get('https://jsonplaceholder.typicode.com/users')
-    .then(responce => setData(responce.data))
+        .then(response => setData(response.data))
     } catch (error) {
       console.log(error);
     }
@@ -18,54 +19,92 @@ const Table = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const userData = {username, email}
+    const userData = { username, email };
 
-    if(isEditing) {
-      setData(data.map(user => (user.id === isEditing ? {...user, ...userData}:user)))
-      setIsEditing(null)
+    // Validate inputs
+    if (!username.trim() || !email.trim()) {
+      setErrors({
+        username: !username.trim(),
+        email: !email.trim()
+      });
+      return; // Stop form submission
+    }
+
+    if (isEditing) {
+      setData(data.map(user => (user.id === isEditing ? { ...user, ...userData } : user)));
+      setIsEditing(null);
     } else {
       const newId = data.length + 1;
-      // axios.post('https://jsonplaceholder.typicode.com/users', {id:newId, ...userData})
-      // .then(res => setData([...data, res.data]))
-      setData([...data, {id:newId, ...userData}])
+      setData([...data, { id: newId, ...userData }]);
     }
+
+    // Reset input and errors
     setUsername('');
     setEmail('');
+    setErrors({ username: false, email: false });
   };
+
   const handleEditing = (id) => {
-    const userEdit = data.find(useEd => useEd.id === id);
+    const userEdit = data.find(user => user.id === id);
     setUsername(userEdit.username);
     setEmail(userEdit.email);
-    setIsEditing(id)
+    setIsEditing(id);
   };
+
   const handleDelete = (id) => {
-    setData(data.filter(userDelete => userDelete.id !== id))
+    setData(data.filter(user => user.id !== id));
   };
 
   return (
     <div>
-      <h1>URL Todos</h1>
-      <form action="" onSubmit={handleSubmit}>
-        <label htmlFor="">UseName</label>
+      <h1>User Table</h1>
+      <form onSubmit={handleSubmit}>
+        <label>Username</label>
         <input
           type="text"
-          placeholder="Enter User Name"
+          placeholder="Enter Username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            if (e.target.value.trim() !== '') {
+              setErrors(prev => ({ ...prev, username: false }));
+            }
+          }}
+          style={{
+            border: errors.username ? "2px solid red" : "2px solid gray",
+            outline: "none",
+            padding: "8px"
+          }}
         />
+        {errors.username && <p style={{ color: "red" }}>Username is required!</p>}
+
         <br />
-        <label htmlFor="">Email</label>
+
+        <label>Email</label>
         <input
           type="email"
           placeholder="Enter Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (e.target.value.trim() !== '') {
+              setErrors(prev => ({ ...prev, email: false }));
+            }
+          }}
+          style={{
+            border: errors.email ? "2px solid red" : "2px solid gray",
+            outline: "none",
+            padding: "8px"
+          }}
         />
+        {errors.email && <p style={{ color: "red" }}>Email is required!</p>}
+
         <br />
+
         <button type="submit">Submit</button>
       </form>
 
-      <table>
+      <table border="1" cellPadding="8" cellSpacing="0">
         <thead>
           <tr>
             <th>Id</th>
@@ -82,9 +121,7 @@ const Table = () => {
               <td>{userData.email}</td>
               <td>
                 <button onClick={() => handleEditing(userData.id)}>Edit</button>
-                <button onClick={() => handleDelete(userData.id)}>
-                  Delete
-                </button>
+                <button onClick={() => handleDelete(userData.id)}>Delete</button>
               </td>
             </tr>
           ))}
@@ -95,6 +132,7 @@ const Table = () => {
 };
 
 export default Table;
+
 // import axios from 'axios';
 // import { useState, useEffect } from 'react';
 
